@@ -10,38 +10,22 @@ namespace WebApplication1.Areas.Security.Controllers
 {
     public class UsersController : Controller
     {
-        private IList<UserView> Users
+        public UsersController()
         {
-            get
-            {
-                if (Session["data"] == null)
+                ViewBag.Gender = new List<SelectListItem>{
+                new SelectListItem
                 {
-                    Session["data"] = new List<UserView>(){
-                        new UserView {
-                            Id = Guid.NewGuid(),
-                            FirstName = "John",
-                            LastName = "Doe",
-                            Age = 29,
-                            Gender="Female"
-                           
-                        },
-                        new UserView {
-                            Id = Guid.NewGuid(),
-                            FirstName = "Jane",
-                            LastName = "Doe",
-                            Age = 32,
-                            Gender="Female"
-                        },
-                        new UserView {
-                            Id = Guid.NewGuid(),
-                            FirstName = "Lance",
-                            LastName = "Vallecer",
-                            Age = 20,
-                            Gender="Male"
-                        }
-                    };
+                    Value = "Male",
+                    Text = "Male"
+                },
+
+                new SelectListItem
+                {
+                    Value = "Female",
+                    Text = "Female"
                 }
-                return Session["data"] as List<UserView>;
+            };
+            ViewBag.Gender = Gender;
             }
         }
         // GET: Security/Users
@@ -66,8 +50,7 @@ namespace WebApplication1.Areas.Security.Controllers
         // GET: Security/Users/Details/5
         public ActionResult Details(Guid id)
         {
-            var u = Users.FirstOrDefault(user => user.Id == id);
-            return View(u);
+            return View(GetUser(Id));
         }
 
         // GET: Security/Users/Create
@@ -99,10 +82,9 @@ namespace WebApplication1.Areas.Security.Controllers
                 if (ModelState.IsValid == false)
                     return View();
 
-
                 using (var db = new DatabaseContext())
                 {
-                    Users.Add(new UserView
+                   db.Users.Add(new User
                      {
                          Id = Guid.NewGuid(),
                          FirstName = viewmodel.FirstName,
@@ -127,18 +109,24 @@ namespace WebApplication1.Areas.Security.Controllers
         public ActionResult Edit(Guid id)
         {
            
-            return View();
+            return View(GetUser(id));
         }   
         // POST: Security/Users/Edit/5
         [HttpPost]
-        public ActionResult Edit(Guid id, UserView view)
+        public ActionResult Edit(Guid id, UserView viewmodel)
         {
             try
             {
-                var u = Users.FirstOrDefault(user => user.Id == id);
-                u.FirstName = view.FirstName;
-                u.LastName = view.LastName;
-                u.Age = view.Age;
+
+                using (var db = new DatabaseContext())
+                {
+                var user = db.Users.FirstOrDefault(u => u.Id = id);
+                user.FirstName = viewmodel.Firstname;
+                user.LastName = viewmodel.Lastname;
+                user.Age = viewmodel.Age;
+                user.Gender = viewmodel.Gender;
+
+                db.SaveChanges();
                 return RedirectToAction("Index");
             }
             catch
